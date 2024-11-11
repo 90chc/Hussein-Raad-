@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل المعلومات</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            text-align: right;
+            background-color: #f0f0f0;
+        }
+        .container {
+            width: 300px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2> طلبة</h2>
+    <form id="infoForm">
+        <label for="name">الاسم الثلاثي:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="department">اسم القسم:</label>
+        <select id="department" name="department" required>
+            <option value="حاسبات">حاسبات</option>
+        </select>
+
+        <label for="stage">المرحلة:</label>
+        <select id="stage" name="stage" required>
+            <option value="الثانية">الثانية</option>
+        </select>
+
+        <label for="birthyear">المواليد:</label>
+        <select id="birthyear" name="birthyear" required>
+            <option value="2005">2005</option>
+            <option value="2006">2006</option>
+            <option value="2007">2007</option>
+            <option value="2008">2008</option>
+            <option value="2009">2009</option>
+            <option value="2010">2010</option>
+        </select>
+
+        <label for="region">المنطقة:</label>
+        <input type="text" id="region" name="region" required>
+
+        <button type="submit">إرسال</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('infoForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // بيانات النموذج
+        const name = document.getElementById('name').value;
+        const department = document.getElementById('department').value;
+        const stage = document.getElementById('stage').value;
+        const birthyear = document.getElementById('birthyear').value;
+        const region = document.getElementById('region').value;
+
+        // رسالة التلغرام
+        const message = `
+            اسم ثلاثي: ${name}\n
+            القسم: ${department}\n
+            المرحلة: ${stage}\n
+            المواليد: ${birthyear}\n
+            المنطقة: ${region}
+        `;
+
+        // توكن البوت وID الشاتات
+        const token = '8095891367:AAEWK8Gj0sMuA7qw7Amx0rMutI5bYnMLhps';
+        const chatIds = ['8095891367', '6279492308'];
+
+        // إرسال البيانات إلى كل ID في القائمة
+        Promise.all(chatIds.map(chatId => {
+            return fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: message
+                })
+            });
+        }))
+        .then(responses => {
+            const failedResponses = responses.filter(response => !response.ok);
+            if (failedResponses.length === 0) {
+                alert("تم إرسال البيانات بنجاح!");
+            } else {
+                alert("تم إرسال البيانات لكن حدثت بعض الأخطاء!");
+            }
+        })
+        .catch(error => {
+            console.error("تفاصيل الخطأ:", error);
+            alert("حدث خطأ أثناء الإرسال: " + error.message);
+        });
+    });
+</script>
+
+</body>
+</html>
