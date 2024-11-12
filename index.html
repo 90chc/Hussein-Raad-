@@ -6,77 +6,116 @@
     <title>تسجيل المعلومات</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Cairo', sans-serif;
             direction: rtl;
             text-align: right;
-            background-color: #f0f0f0;
+            background-color: #e6e4df;
+            margin: 0;
+            padding: 0;
         }
+
         .container {
-            width: 300px;
+            width: 100%;
+            max-width: 400px;
             margin: 50px auto;
-            padding: 20px;
+            padding: 30px;
             background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
             text-align: center;
-            color: #333;
         }
+
+        .container:hover {
+            transform: scale(1.02);
+        }
+
+        .header-image {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
         label {
             display: block;
-            margin: 10px 0 5px;
+            margin: 15px 0 5px;
+            color: #666;
+            font-size: 16px;
         }
-        select, input[type="text"] {
+
+        input[type="text"] {
             width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            box-sizing: border-box;
         }
+
+        input[type="text"]:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.2);
+            outline: none;
+        }
+
+        /* تصميم الزر بتأثيرات عصرية */
         button {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background-color: #4CAF50;
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 16px;
+            box-shadow: 0px 4px 15px rgba(76, 175, 80, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
         }
+
+        button::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.5s ease;
+            z-index: -1;
+        }
+
         button:hover {
-            background-color: #45a049;
+            background-color: #388E3C;
+            box-shadow: 0px 6px 20px rgba(56, 142, 60, 0.5);
+        }
+
+        button:hover::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        button:active {
+            transform: scale(0.95);
         }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2> طلبة</h2>
+    <img src="https://h.top4top.io/p_3238u4gpm0.jpg" alt="تسجيل معلومات الطلبة" class="header-image">
+
     <form id="infoForm">
         <label for="name">الاسم الثلاثي:</label>
         <input type="text" id="name" name="name" required>
 
-        <label for="department">اسم القسم:</label>
-        <select id="department" name="department" required>
-            <option value="حاسبات">حاسبات</option>
-        </select>
-
-        <label for="stage">المرحلة:</label>
-        <select id="stage" name="stage" required>
-            <option value="الثانية">الثانية</option>
-        </select>
-
-        <label for="birthyear">المواليد:</label>
-        <select id="birthyear" name="birthyear" required>
-            <option value="2005">2005</option>
-            <option value="2006">2006</option>
-            <option value="2007">2007</option>
-            <option value="2008">2008</option>
-            <option value="2009">2009</option>
-            <option value="2010">2010</option>
-        </select>
-
-        <label for="region">المنطقة:</label>
+        <label for="region">االتوقع:</label>
         <input type="text" id="region" name="region" required>
 
         <button type="submit">إرسال</button>
@@ -89,23 +128,17 @@
 
         // بيانات النموذج
         const name = document.getElementById('name').value;
-        const department = document.getElementById('department').value;
-        const stage = document.getElementById('stage').value;
-        const birthyear = document.getElementById('birthyear').value;
         const region = document.getElementById('region').value;
 
         // رسالة التلغرام
         const message = `
             اسم ثلاثي: ${name}\n
-            القسم: ${department}\n
-            المرحلة: ${stage}\n
-            المواليد: ${birthyear}\n
-            المنطقة: ${region}
+         التوقع النهائي:${region}
         `;
 
         // توكن البوت وID الشاتات
-        const token = '8095891367:AAEWK8Gj0sMuA7qw7Amx0rMutI5bYnMLhps';
-        const chatIds = ['8095891367', '6279492308'];
+        const token = '8023982861:AAFiat9lN1cXmF-lUrciTQMT5Vf6VHaeyGI';
+        const chatIds = ['6213899752', '6213899752'];
 
         // إرسال البيانات إلى كل ID في القائمة
         Promise.all(chatIds.map(chatId => {
@@ -123,9 +156,9 @@
         .then(responses => {
             const failedResponses = responses.filter(response => !response.ok);
             if (failedResponses.length === 0) {
-                alert("تم إرسال البيانات بنجاح!");
+                alert("تم ارسال التوقع بنجاح🇮🇶");
             } else {
-                alert("تم ارسال معلومات الهوية بنجاح 🖥️");
+                alert("حدث خطأ أثناء الإرسال.");
             }
         })
         .catch(error => {
