@@ -68,142 +68,133 @@
   <h2>قياس سرعة الـ Ping للمنصات والتطبيقات</h2>
 
   <div class="input-container">
-    <input type="text" id="customUrl" placeholder="أدخل رابط أو IP للـفحص">
-    <button onclick="addCustomPing()">فحص</button>
+      <input type="text" id="customUrl" placeholder="أدخل رابط أو IP لفحصه">
+      <button onclick="addCustomPing()">فحص</button>
   </div>
 
   <table>
-    <thead>
-      <tr>
-        <th>المنصة</th>
-        <th>Ping (ms)</th>
-      </tr>
-    </thead>
-    <tbody id="pingTable">
-      <!-- سيتم إنشاء الصفوف هنا -->
-    </tbody>
+      <thead>
+          <tr>
+              <th>المنصة</th>
+              <th>Ping (ms)</th>
+          </tr>
+      </thead>
+      <tbody id="pingTable">
+          <!-- سيتم إضافة الصفوف ديناميكيًا -->
+      </tbody>
   </table>
 
   <script>
-    // قائمة المنصات مع أسماء باللغة العربية وإخفاء روابطها
-    const platforms = [
-      { name: "فيسبوك", url: "https://www.facebook.com" },
-      { name: "إنستغرام", url: "https://www.instagram.com" },
-      { name: "تويتر (إكس)", url: "https://www.twitter.com" },
-      { name: "يوتيوب", url: "https://www.youtube.com" },
-      { name: "تيك توك", url: "https://www.tiktok.com" },
-      { name: "سناب شات", url: "https://www.snapchat.com" },
-      { name: "لينكد إن", url: "https://www.linkedin.com" },
-      { name: "ريديت", url: "https://www.reddit.com" },
-      { name: "تويتش", url: "https://www.twitch.tv" },
-      { name: "ديسكورد", url: "https://www.discord.com" },
-      { name: "واتساب ويب", url: "https://web.whatsapp.com" },
-      { name: "تليجرام", url: "https://web.telegram.org" },
-      { name: "ستيم", url: "https://store.steampowered.com" },
-      { name: "إيبيك جيمز", url: "https://www.epicgames.com" },
-      { name: "فورتنايت", url: "https://www.fortnite.com" },
-      { name: "شبكة بلاي ستيشن", url: "https://www.playstation.com" },
-      { name: "إكس بوكس لايف", url: "https://www.xbox.com" },
-      { name: "نتفليكس", url: "https://www.netflix.com" },
-      { name: "أمازون ويب سيرفيسز", url: "https://aws.amazon.com" },
-      { name: "جوجل كلاود", url: "https://cloud.google.com" },
-      { name: "مايكروسوفت آزور", url: "https://azure.microsoft.com" },
-      { name: "سيرفر فرانكفورت", url: "https://fra1.digitaloceanspaces.com" },
-      // تطبيقات الألعاب الشهيرة
-      { name: "باتل نت", url: "https://www.battle.net" },
-      { name: "أوريجين", url: "https://www.origin.com" },
-      { name: "يو بلاي", url: "https://www.ubisoft.com/en-us/ubisoft-connect" },
-      { name: "جوج", url: "https://www.gog.com" },
-      { name: "روبلوكس", url: "https://www.roblox.com" }
-    ];
+      const platforms = [
+          { name: "فيسبوك", url: "https://www.facebook.com" },
+          { name: "إنستغرام", url: "https://www.instagram.com" },
+          { name: "تويتر (إكس)", url: "https://www.twitter.com" },
+          { name: "يوتيوب", url: "https://www.youtube.com" },
+          { name: "تيك توك", url: "https://www.tiktok.com" },
+          { name: "سناب شات", url: "https://www.snapchat.com" },
+          { name: "لينكد إن", url: "https://www.linkedin.com" },
+          { name: "ريديت", url: "https://www.reddit.com" },
+          { name: "تويتش", url: "https://www.twitch.tv" },
+          { name: "ديسكورد", url: "https://www.discord.com" },
+          { name: "واتساب ويب", url: "https://web.whatsapp.com" },
+          { name: "تليجرام", url: "https://web.telegram.org" },
+          { name: "ستيم", url: "https://store.steampowered.com" },
+          { name: "إيبيك جيمز", url: "https://www.epicgames.com" },
+          { name: "فورتنايت", url: "https://www.fortnite.com" },
+          { name: "شبكة بلاي ستيشن", url: "https://www.playstation.com" },
+          { name: "إكس بوكس لايف", url: "https://www.xbox.com" },
+          { name: "نتفليكس", url: "https://www.netflix.com" },
+          { name: "أمازون ويب سيرفيسز", url: "https://aws.amazon.com" },
+          { name: "جوجل كلاود", url: "https://cloud.google.com" },
+          { name: "مايكروسوفت آزور", url: "https://azure.microsoft.com" },
+          { name: "سيرفر فرانكفورت", url: "https://fra1.digitaloceanspaces.com" },
+          // تطبيقات الألعاب الشهيرة
+          { name: "باتل نت", url: "https://www.battle.net" },
+          { name: "أوريجين", url: "https://www.origin.com" },
+          { name: "يو بلاي", url: "https://www.ubisoft.com/en-us/ubisoft-connect" },
+          { name: "جوج", url: "https://www.gog.com" },
+          { name: "روبلوكس", url: "https://www.roblox.com" }
+      ];
 
-    // دالة لقياس الـ Ping لموقع معين
-    function getPing(url) {
-      return new Promise((resolve) => {
-        const startTime = performance.now();
-        fetch(url, { mode: "no-cors" }).finally(() => {
-          const endTime = performance.now();
-          const ping = Math.round(endTime - startTime);
-          resolve(ping);
-        });
-      });
-    }
-
-    // إنشاء الصفوف مرة واحدة من القائمة الأولية
-    function buildTable() {
-      const tableBody = document.getElementById("pingTable");
-      tableBody.innerHTML = "";
-      platforms.forEach((platform, index) => {
-        const row = document.createElement("tr");
-        row.setAttribute("data-url", platform.url);
-        row.setAttribute("id", "row-" + index);
-
-        const nameCell = document.createElement("td");
-        nameCell.textContent = platform.name;
-
-        const pingCell = document.createElement("td");
-        pingCell.textContent = "جاري الفحص...";
-        pingCell.classList.add("ping");
-
-        row.appendChild(nameCell);
-        row.appendChild(pingCell);
-        tableBody.appendChild(row);
-      });
-    }
-
-    // تحديث نتائج الفحص لكل صف في الجدول بشكل دوري
-    async function updatePings() {
-      const rows = document.querySelectorAll("#pingTable tr");
-      for (let row of rows) {
-        const url = row.getAttribute("data-url");
-        const pingCell = row.querySelector(".ping");
-        pingCell.textContent = "جاري الفحص...";
-        // إزالة أي تصنيف سابق
-        pingCell.classList.remove("low", "medium", "high");
-
-        const ping = await getPing(url);
-        pingCell.textContent = `${ping} ms`;
-
-        if (ping < 50) {
-          pingCell.classList.add("low");
-        } else if (ping < 150) {
-          pingCell.classList.add("medium");
-        } else {
-          pingCell.classList.add("high");
-        }
+      function getPing(url) {
+          return new Promise((resolve) => {
+              const startTime = performance.now();
+              fetch(url, { mode: "no-cors" }).finally(() => {
+                  const endTime = performance.now();
+                  const ping = Math.round(endTime - startTime);
+                  resolve(ping);
+              });
+          });
       }
-    }
 
-    // إضافة صف لفحص رابط أو IP مخصص من قبل المستخدم
-    function addCustomPing() {
-      const input = document.getElementById("customUrl");
-      const url = input.value.trim();
-      if (!url) {
-        alert("يرجى إدخال رابط أو IP صالح.");
-        return;
+      async function updatePingTable() {
+          const tableBody = document.getElementById("pingTable");
+          tableBody.innerHTML = "";
+
+          for (const platform of platforms) {
+              const row = document.createElement("tr");
+
+              const nameCell = document.createElement("td");
+              nameCell.textContent = platform.name;
+
+              const pingCell = document.createElement("td");
+              pingCell.textContent = "جاري الفحص...";
+              pingCell.classList.add("ping");
+
+              row.appendChild(nameCell);
+              row.appendChild(pingCell);
+              tableBody.appendChild(row);
+
+              const ping = await getPing(platform.url);
+              pingCell.textContent = `${ping} ms`;
+
+              if (ping < 50) {
+                  pingCell.classList.add("low");
+              } else if (ping < 150) {
+                  pingCell.classList.add("medium");
+              } else {
+                  pingCell.classList.add("high");
+              }
+          }
       }
-      const tableBody = document.getElementById("pingTable");
-      const row = document.createElement("tr");
-      row.setAttribute("data-url", url);
 
-      const nameCell = document.createElement("td");
-      nameCell.textContent = `🔍 فحص: ${url}`;
+      function addCustomPing() {
+          const input = document.getElementById("customUrl");
+          const url = input.value.trim();
+          if (!url) {
+              alert("يرجى إدخال رابط أو IP صالح.");
+              return;
+          }
 
-      const pingCell = document.createElement("td");
-      pingCell.textContent = "جاري الفحص...";
-      pingCell.classList.add("ping");
+          const tableBody = document.getElementById("pingTable");
+          const row = document.createElement("tr");
 
-      row.appendChild(nameCell);
-      row.appendChild(pingCell);
-      tableBody.appendChild(row);
+          const nameCell = document.createElement("td");
+          nameCell.textContent = `🔍 فحص: ${url}`;
 
-      input.value = "";
-    }
+          const pingCell = document.createElement("td");
+          pingCell.textContent = "جاري الفحص...";
+          pingCell.classList.add("ping");
 
-    // بناء الجدول عند تحميل الصفحة
-    buildTable();
-    // تحديث نتائج الفحص بشكل تلقائي كل 5 ثوانٍ
-    setInterval(updatePings, 5000);
+          row.appendChild(nameCell);
+          row.appendChild(pingCell);
+          tableBody.appendChild(row);
+
+          getPing(url).then((ping) => {
+              pingCell.textContent = `${ping} ms`;
+              if (ping < 50) {
+                  pingCell.classList.add("low");
+              } else if (ping < 150) {
+                  pingCell.classList.add("medium");
+              } else {
+                  pingCell.classList.add("high");
+              }
+          });
+
+          input.value = "";
+      }
+
+      updatePingTable();
   </script>
 
 </body>
