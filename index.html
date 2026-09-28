@@ -5,18 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hussein Raad | Hussein.Dev</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
-/* ================= المتغيرات العامة ================= */
+/* ================= المتغيرات ================= */
 :root{
   --green:#00ff9c;
   --cyan:#00e5ff;
   --pink:#ff2e88;
-  --bg:#04070a;
-  --panel:rgba(6,16,14,.65);
-  --border:rgba(0,255,156,.22);
+  --gold:#ffd76a;
+  --bg:#03060a;
+  --panel:rgba(7,18,16,.55);
+  --border:rgba(0,255,156,.18);
   --txt:#c9ffe8;
-  --mx:50%;
-  --my:50%;
+  --muted:#5f9280;
+  --mx:50vw;
+  --my:50vh;
+  --radius:20px;
 }
 
 *{margin:0;padding:0;box-sizing:border-box}
@@ -29,68 +36,199 @@ body{
   min-height:100vh;
   overflow-x:hidden;
   position:relative;
+  -webkit-font-smoothing:antialiased;
 }
 
-/* ================= الخلفيات المتحركة ================= */
-#matrix{
-  position:fixed; inset:0; z-index:0;
-  opacity:.32;
+/* ================= شاشة التحميل ================= */
+#loader{
+  position:fixed; inset:0; z-index:999;
+  background:var(--bg);
+  display:grid; place-items:center; gap:24px;
+  grid-auto-flow:row;
+  transition:opacity .7s ease, visibility .7s ease;
+}
+body.loaded #loader{opacity:0; visibility:hidden}
+
+.loader-inner{
+  display:flex; flex-direction:column; align-items:center; gap:20px;
+}
+.loader-mark{
+  font-family:"JetBrains Mono",monospace;
+  font-size:2rem; font-weight:600; letter-spacing:6px;
+  color:#eafff5;
+  text-shadow:0 0 26px rgba(0,255,156,.55);
+  animation:loaderPulse 1.6s ease-in-out infinite;
+}
+@keyframes loaderPulse{50%{opacity:.45}}
+.loader-bar{
+  width:220px; height:2px; border-radius:9px;
+  background:rgba(0,255,156,.12); overflow:hidden;
+}
+.loader-bar i{
+  display:block; height:100%; width:0%;
+  background:linear-gradient(90deg,var(--green),var(--cyan));
+  box-shadow:0 0 14px var(--green);
+  transition:width .25s ease;
+}
+.loader-pct{
+  font-family:"JetBrains Mono",monospace;
+  font-size:.72rem; color:var(--muted); letter-spacing:2px;
 }
 
-.overlay{
-  position:fixed; inset:0; z-index:1; pointer-events:none;
-  background:radial-gradient(circle 420px at var(--mx) var(--my),
-             rgba(0,255,156,.13), transparent 70%);
-  transition:background .12s linear;
+/* ================= الخلفيات ================= */
+.bg-layer{position:fixed; inset:0; pointer-events:none}
+
+#aurora{ z-index:0; overflow:hidden; }
+.blob{
+  position:absolute; border-radius:50%;
+  filter:blur(90px); opacity:.35;
+  will-change:transform;
+}
+.blob.b1{
+  width:520px;height:520px; top:-140px; right:-120px;
+  background:radial-gradient(circle,#00ff9c,transparent 68%);
+  animation:float1 18s ease-in-out infinite;
+}
+.blob.b2{
+  width:460px;height:460px; bottom:-160px; left:-140px;
+  background:radial-gradient(circle,#00e5ff,transparent 68%);
+  animation:float2 22s ease-in-out infinite;
+}
+.blob.b3{
+  width:380px;height:380px; top:38%; left:52%;
+  background:radial-gradient(circle,#ff2e88,transparent 70%);
+  opacity:.16;
+  animation:float3 26s ease-in-out infinite;
+}
+@keyframes float1{50%{transform:translate(-60px,70px) scale(1.15)}}
+@keyframes float2{50%{transform:translate(70px,-60px) scale(1.12)}}
+@keyframes float3{50%{transform:translate(-50px,-70px) scale(1.2)}}
+
+#matrix{ z-index:1; opacity:.14; }
+
+#grid{
+  z-index:2; opacity:.35;
+  background-image:
+    linear-gradient(rgba(0,255,156,.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,156,.045) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
+  -webkit-mask-image:radial-gradient(circle at 50% 30%, #000 0%, transparent 78%);
 }
 
-.scanlines{
-  position:fixed; inset:0; z-index:2; pointer-events:none;
+#noise{
+  z-index:3; opacity:.032; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+#spotlight{
+  z-index:4;
+  background:radial-gradient(circle 460px at var(--mx) var(--my),
+             rgba(0,255,156,.10), transparent 68%);
+  transition:background .18s linear;
+}
+
+#scanlines{
+  z-index:5; opacity:.22;
   background:repeating-linear-gradient(to bottom,
-             rgba(0,0,0,0) 0 2px, rgba(0,0,0,.35) 2px 4px);
-  opacity:.30;
+             rgba(0,0,0,0) 0 2px, rgba(0,0,0,.4) 2px 4px);
 }
 
-.vignette{
-  position:fixed; inset:0; z-index:2; pointer-events:none;
-  background:radial-gradient(circle at 50% 50%,
-             transparent 40%, rgba(0,0,0,.85) 100%);
+#vignette{
+  z-index:5;
+  background:radial-gradient(circle at 50% 45%,
+             transparent 38%, rgba(0,0,0,.9) 100%);
+}
+
+/* ================= المؤشر المخصص ================= */
+.cursor-dot,
+.cursor-ring{
+  position:fixed; top:0; left:0; z-index:900;
+  pointer-events:none; border-radius:50%;
+  transform:translate(-50%,-50%);
+  mix-blend-mode:screen;
+}
+.cursor-dot{
+  width:6px;height:6px;background:var(--green);
+  box-shadow:0 0 12px var(--green);
+  transition:transform .12s ease;
+}
+.cursor-ring{
+  width:38px;height:38px;
+  border:1px solid rgba(0,255,156,.5);
+  transition:width .28s ease, height .28s ease,
+             border-color .28s ease, background .28s ease;
+}
+body.cursor-hover .cursor-ring{
+  width:64px;height:64px;
+  border-color:rgba(0,255,156,.9);
+  background:rgba(0,255,156,.06);
+}
+body.cursor-hover .cursor-dot{transform:translate(-50%,-50%) scale(.4)}
+@media (hover:none), (pointer:coarse){
+  .cursor-dot,.cursor-ring{display:none}
+}
+
+/* ================= شريط التقدم ================= */
+#progress{
+  position:fixed; top:0; left:0; z-index:800;
+  height:2px; width:0%;
+  background:linear-gradient(90deg,var(--green),var(--cyan),var(--gold));
+  box-shadow:0 0 14px rgba(0,255,156,.8);
+  transition:width .1s linear;
 }
 
 /* ================= الهيكل ================= */
 .wrap{
-  position:relative; z-index:3;
-  max-width:920px; margin:0 auto;
-  padding:52px 20px 70px;
-  display:flex; flex-direction:column; gap:30px;
+  position:relative; z-index:10;
+  max-width:940px; margin:0 auto;
+  padding:64px 20px 80px;
+  display:flex; flex-direction:column; gap:34px;
 }
 
-/* ================= تأثير الظهور ================= */
-.reveal{opacity:0; transform:translateY(26px);
-        transition:opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1);}
-.reveal.in{opacity:1; transform:none;}
+/* ================= الظهور ================= */
+.reveal{
+  opacity:0; transform:translateY(30px);
+  transition:opacity .9s cubic-bezier(.2,.8,.2,1),
+             transform .9s cubic-bezier(.2,.8,.2,1);
+}
+.reveal.in{opacity:1; transform:none}
 
 /* ================= الهيرو ================= */
 .hero{
-  display:flex; flex-direction:column; align-items:center;
-  gap:18px; text-align:center;
+  display:flex; flex-direction:column;
+  align-items:center; gap:20px; text-align:center;
 }
 
-/* --- نافذة الطرفية --- */
+/* --- الطرفية --- */
 .terminal{
-  width:100%; max-width:640px;
-  background:var(--panel);
+  width:100%; max-width:660px;
+  background:linear-gradient(160deg, rgba(8,22,20,.82), rgba(4,10,12,.72));
   border:1px solid var(--border);
-  border-radius:12px;
+  border-radius:16px;
   overflow:hidden;
-  backdrop-filter:blur(6px);
-  box-shadow:0 0 30px rgba(0,255,156,.10), inset 0 0 40px rgba(0,255,156,.03);
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  box-shadow:
+    0 24px 60px -20px rgba(0,0,0,.9),
+    0 0 44px rgba(0,255,156,.08),
+    inset 0 1px 0 rgba(255,255,255,.05);
   direction:ltr;
+  position:relative;
 }
+.terminal::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(115deg, transparent 40%,
+             rgba(255,255,255,.045) 50%, transparent 60%);
+  background-size:250% 100%;
+  animation:sheen 7s linear infinite;
+}
+@keyframes sheen{to{background-position:-250% 0}}
+
 .term-bar{
   display:flex; align-items:center; gap:8px;
-  padding:10px 14px;
-  background:rgba(0,255,156,.06);
+  padding:11px 15px;
+  background:rgba(0,255,156,.05);
   border-bottom:1px solid var(--border);
 }
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block}
@@ -98,81 +236,107 @@ body{
 .dot.yellow{background:#febc2e}
 .dot.green{background:#28c840}
 .term-title{
-  margin-left:auto; font-family:"Courier New",monospace;
-  font-size:.72rem; color:#5c8f7c; letter-spacing:1px;
+  margin-left:auto;
+  font-family:"JetBrains Mono",monospace;
+  font-size:.7rem; color:var(--muted); letter-spacing:1.2px;
 }
 
 .term-body{
-  padding:16px; min-height:150px;
-  font-family:"Courier New",monospace;
-  font-size:.92rem; line-height:1.9; text-align:left;
+  padding:18px; min-height:160px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:.9rem; line-height:1.95; text-align:left;
 }
 .term-line{white-space:pre-wrap}
 .term-line.cmd{color:var(--green)}
-.term-line.out{color:var(--cyan); padding-left:14px}
+.term-line.cmd::first-letter{color:var(--gold)}
+.term-line.out{color:var(--cyan); padding-left:16px}
+.term-line.ok{color:var(--gold); padding-left:16px}
 
 .cursor{
   display:inline-block; width:9px; height:16px;
   background:var(--green); vertical-align:middle;
   animation:blink .9s steps(1) infinite;
-  box-shadow:0 0 10px var(--green);
+  box-shadow:0 0 12px var(--green);
 }
 @keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
 
 /* --- الصورة الرمزية --- */
 .avatar-wrap{
-  position:relative; width:152px; height:152px;
-  display:grid; place-items:center; margin-top:6px;
+  position:relative; width:170px; height:170px;
+  display:grid; place-items:center; margin-top:8px;
 }
 .avatar-ring{
   position:absolute; inset:0; border-radius:50%;
   background:conic-gradient(from 0deg,
-      transparent 0 60%, var(--green) 78%, var(--cyan) 90%, transparent 100%);
-  animation:spin 4s linear infinite;
-  filter:drop-shadow(0 0 12px rgba(0,255,156,.65));
+      transparent 0 55%, var(--green) 76%, var(--cyan) 88%, var(--gold) 96%, transparent 100%);
+  animation:spin 5s linear infinite;
+  filter:drop-shadow(0 0 16px rgba(0,255,156,.6));
 }
 .avatar-ring::after{
-  content:""; position:absolute; inset:6px;
+  content:""; position:absolute; inset:5px;
   border-radius:50%; background:var(--bg);
 }
+.avatar-ring.slow{
+  inset:-12px;
+  animation:spin 12s linear infinite reverse;
+  opacity:.35;
+  filter:drop-shadow(0 0 10px rgba(0,229,255,.5));
+}
+.avatar-ring.slow::after{background:var(--bg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
 .avatar{
   position:relative; z-index:2;
-  width:118px; height:118px; border-radius:50%;
+  width:130px; height:130px; border-radius:50%;
   display:grid; place-items:center;
-  background:radial-gradient(circle at 50% 28%, #0b2a22, #04070a 72%);
-  border:1px solid var(--border);
-  font-family:"Courier New",monospace; font-size:2.4rem; font-weight:700;
-  color:var(--green); text-shadow:0 0 20px rgba(0,255,156,.85);
-  animation:pulse 3s ease-in-out infinite;
+  background:
+    radial-gradient(circle at 50% 26%, #0d3329, #04070a 74%);
+  border:1px solid rgba(0,255,156,.3);
+  font-family:"JetBrains Mono",monospace;
+  font-size:2.6rem; font-weight:600;
+  color:var(--green);
+  text-shadow:0 0 26px rgba(0,255,156,.9);
+  animation:pulse 3.4s ease-in-out infinite;
+  overflow:hidden;
 }
-@keyframes spin{to{transform:rotate(360deg)}}
+.avatar::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(to bottom, transparent 45%,
+             rgba(0,255,156,.16) 50%, transparent 55%);
+  animation:scanAvatar 3.6s linear infinite;
+}
+@keyframes scanAvatar{
+  0%{transform:translateY(-100%)}
+  100%{transform:translateY(100%)}
+}
 @keyframes pulse{
-  0%,100%{box-shadow:0 0 18px rgba(0,255,156,.25)}
-  50%    {box-shadow:0 0 42px rgba(0,255,156,.55)}
+  0%,100%{box-shadow:0 0 22px rgba(0,255,156,.22)}
+  50%    {box-shadow:0 0 52px rgba(0,255,156,.5)}
 }
 
-/* --- الاسم بتأثير Glitch --- */
+/* --- الاسم --- */
 .glitch{
   position:relative;
-  font-family:"Courier New",monospace;
-  font-size:clamp(1.9rem,7vw,3.4rem);
-  font-weight:700; letter-spacing:3px; color:#eafff5;
-  text-shadow:0 0 22px rgba(0,255,156,.45);
+  font-family:"JetBrains Mono",monospace;
+  font-size:clamp(2rem,7.5vw,3.6rem);
+  font-weight:600; letter-spacing:4px; color:#eafff5;
+  text-shadow:0 0 30px rgba(0,255,156,.45);
 }
 .glitch::before,
 .glitch::after{
   content:attr(data-text);
   position:absolute; inset:0;
+  pointer-events:none;
 }
 .glitch::before{
   color:var(--cyan);
   clip-path:inset(0 0 58% 0);
-  animation:glitch1 2.6s infinite linear alternate-reverse;
+  animation:glitch1 3.2s infinite linear alternate-reverse;
 }
 .glitch::after{
   color:var(--pink);
   clip-path:inset(58% 0 0 0);
-  animation:glitch2 3.1s infinite linear alternate-reverse;
+  animation:glitch2 3.7s infinite linear alternate-reverse;
 }
 @keyframes glitch1{
   0%,88%,100%{transform:translate(0,0);opacity:0}
@@ -185,157 +349,332 @@ body{
   93%{transform:translate(-3px,-1px);opacity:.85}
 }
 
-.role{
-  font-size:1rem; color:#7fe0bd; letter-spacing:.5px;
+/* --- الحالة --- */
+.status{
+  display:inline-flex; align-items:center; gap:9px;
+  padding:7px 16px; border-radius:999px;
+  border:1px solid rgba(0,255,156,.28);
+  background:rgba(0,255,156,.06);
+  font-family:"JetBrains Mono",monospace;
+  font-size:.76rem; color:var(--green);
+  letter-spacing:.8px;
 }
-.role span{color:var(--cyan)}
+.status i{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--green); box-shadow:0 0 10px var(--green);
+  animation:beat 1.6s ease-in-out infinite;
+}
+@keyframes beat{50%{opacity:.25; transform:scale(.75)}}
+
+.role{
+  font-size:1.02rem; color:#7fe0bd; letter-spacing:.6px;
+}
+.role span{
+  color:var(--cyan);
+  background:linear-gradient(90deg,var(--cyan),var(--green));
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font-weight:700;
+}
 
 .badges{display:flex; flex-wrap:wrap; gap:10px; justify-content:center}
 .badge{
-  font-size:.78rem; padding:6px 14px; border-radius:999px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:.74rem; padding:7px 15px; border-radius:999px;
   border:1px solid var(--border);
-  background:rgba(0,255,156,.06);
+  background:rgba(0,255,156,.05);
   color:var(--green);
-  transition:.3s;
+  transition:.35s cubic-bezier(.2,.8,.2,1);
+  cursor:default;
 }
 .badge:hover{
-  background:rgba(0,255,156,.18);
-  box-shadow:0 0 18px rgba(0,255,156,.4);
-  transform:translateY(-2px);
+  background:rgba(0,255,156,.16);
+  border-color:var(--green);
+  box-shadow:0 0 22px rgba(0,255,156,.4);
+  transform:translateY(-3px);
+}
+
+/* --- مؤشر التمرير --- */
+.scroll-hint{
+  margin-top:6px;
+  width:24px; height:40px; border-radius:14px;
+  border:1px solid rgba(0,255,156,.28);
+  display:grid; justify-items:center; padding-top:7px;
+  opacity:.65;
+}
+.scroll-hint i{
+  width:3px; height:8px; border-radius:3px;
+  background:var(--green); box-shadow:0 0 10px var(--green);
+  animation:wheel 1.8s ease-in-out infinite;
+}
+@keyframes wheel{
+  0%{transform:translateY(0);opacity:1}
+  70%{transform:translateY(14px);opacity:0}
+  100%{opacity:0}
 }
 
 /* ================= اللوحات ================= */
 .panel{
-  background:var(--panel);
+  position:relative;
+  background:linear-gradient(160deg, rgba(8,22,20,.62), rgba(4,10,12,.5));
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:22px;
-  backdrop-filter:blur(6px);
-  box-shadow:0 0 30px rgba(0,255,156,.06);
+  border-radius:var(--radius);
+  padding:26px;
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  box-shadow:
+    0 26px 60px -28px rgba(0,0,0,.9),
+    inset 0 1px 0 rgba(255,255,255,.04);
+  overflow:hidden;
+  transition:border-color .4s ease, box-shadow .4s ease, transform .5s cubic-bezier(.2,.8,.2,1);
 }
+.panel:hover{
+  border-color:rgba(0,255,156,.36);
+  box-shadow:
+    0 30px 70px -28px rgba(0,0,0,.95),
+    0 0 46px rgba(0,255,156,.12),
+    inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+/* إطار متحرك */
+.panel::before{
+  content:""; position:absolute; inset:0;
+  border-radius:inherit; padding:1px;
+  background:linear-gradient(115deg,
+     transparent 22%, rgba(0,255,156,.85) 40%,
+     rgba(0,229,255,.85) 50%, transparent 68%);
+  background-size:300% 300%;
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+          mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask-composite:exclude;
+  animation:borderFlow 7s linear infinite;
+  pointer-events:none; opacity:0;
+  transition:opacity .5s ease;
+}
+.panel:hover::before{opacity:1}
+@keyframes borderFlow{
+  0%{background-position:0% 50%}
+  100%{background-position:300% 50%}
+}
+
+/* بقعة ضوء تتبع الفأرة داخل اللوحة */
+.panel::after{
+  content:""; position:absolute; inset:0;
+  border-radius:inherit; pointer-events:none;
+  background:radial-gradient(circle 260px at var(--px,50%) var(--py,50%),
+             rgba(0,255,156,.09), transparent 70%);
+  opacity:0; transition:opacity .4s ease;
+}
+.panel:hover::after{opacity:1}
+
 .sec-title{
-  font-size:1.05rem; color:var(--green);
-  font-family:"Courier New",monospace;
-  letter-spacing:1px; margin-bottom:18px;
-  padding-bottom:10px;
-  border-bottom:1px dashed rgba(0,255,156,.22);
+  position:relative;
+  display:flex; align-items:center; gap:12px;
+  font-family:"JetBrains Mono",monospace;
+  font-size:1rem; color:var(--green);
+  letter-spacing:1.2px; margin-bottom:22px;
+  padding-bottom:14px;
+  border-bottom:1px dashed rgba(0,255,156,.18);
+}
+.sec-title .num{
+  font-size:.7rem; color:var(--muted);
+  border:1px solid rgba(0,255,156,.22);
+  padding:2px 8px; border-radius:6px;
 }
 .sec-title .prompt{color:var(--cyan)}
+.sec-title .ar{
+  margin-left:auto;
+  font-family:"Cairo",sans-serif;
+  font-size:.82rem; color:var(--muted); letter-spacing:0;
+}
 
 /* ================= الروابط ================= */
-.links{display:flex; flex-direction:column; gap:12px}
+.links{display:flex; flex-direction:column; gap:13px}
 
 .link{
-  display:flex; align-items:center; gap:14px;
-  padding:14px 16px;
-  border:1px solid rgba(0,255,156,.16);
-  border-radius:11px;
-  background:rgba(0,255,156,.03);
+  display:flex; align-items:center; gap:15px;
+  padding:15px 18px;
+  border:1px solid rgba(0,255,156,.14);
+  border-radius:14px;
+  background:rgba(0,255,156,.028);
   color:var(--txt); text-decoration:none;
   position:relative; overflow:hidden;
-  opacity:0; transform:translateY(14px);
-  transition:opacity .6s ease, transform .6s ease,
-             border-color .3s, background .3s, box-shadow .3s;
+  opacity:0; transform:translateY(16px);
+  transition:opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1),
+             border-color .35s, background .35s, box-shadow .35s;
   transition-delay:var(--d,0s);
+  will-change:transform;
 }
 .reveal.in .link{opacity:1; transform:none}
 
 .link::before{
-  content:""; position:absolute; top:0; right:-120%;
+  content:""; position:absolute; top:0; right:-130%;
   width:60%; height:100%;
-  background:linear-gradient(90deg,transparent,rgba(0,255,156,.16),transparent);
-  transition:right .7s ease;
+  background:linear-gradient(90deg,transparent,rgba(0,255,156,.18),transparent);
+  transition:right .8s cubic-bezier(.2,.8,.2,1);
 }
-.link:hover::before{right:130%}
+.link:hover::before{right:135%}
 
 .link:hover{
   border-color:var(--green);
-  background:rgba(0,255,156,.09);
-  box-shadow:0 0 24px rgba(0,255,156,.22);
-  transform:translateY(-3px);
+  background:rgba(0,255,156,.075);
+  box-shadow:0 0 30px rgba(0,255,156,.2),
+             inset 0 0 26px rgba(0,255,156,.05);
 }
 
 .ico{
-  width:40px; height:40px; flex:0 0 40px;
+  width:44px; height:44px; flex:0 0 44px;
   display:grid; place-items:center;
-  border-radius:10px;
-  border:1px solid rgba(0,255,156,.22);
-  background:rgba(0,255,156,.07);
+  border-radius:12px;
+  border:1px solid rgba(0,255,156,.2);
+  background:rgba(0,255,156,.06);
   color:var(--green);
-  transition:.3s;
+  transition:.4s cubic-bezier(.2,.8,.2,1);
 }
-.ico svg{width:20px;height:20px}
+.ico svg{width:21px;height:21px}
 .link:hover .ico{
-  background:var(--green); color:#04070a;
-  box-shadow:0 0 20px rgba(0,255,156,.6);
-  transform:rotate(-6deg) scale(1.06);
+  background:linear-gradient(140deg,var(--green),var(--cyan));
+  color:#04070a; border-color:transparent;
+  box-shadow:0 0 26px rgba(0,255,156,.65);
+  transform:rotate(-7deg) scale(1.08);
 }
 
-.txt{display:flex; flex-direction:column; gap:2px; flex:1}
-.txt strong{font-size:.98rem; color:#eafff5; font-weight:700}
-.txt em{font-size:.78rem; color:#6fae97; font-style:normal}
+.txt{display:flex; flex-direction:column; gap:3px; flex:1; min-width:0}
+.txt strong{font-size:.99rem; color:#eafff5; font-weight:700}
+.txt em{font-size:.77rem; color:#6fae97; font-style:normal}
 
 .arrow{
-  color:var(--green); font-size:1.05rem; opacity:.5;
-  transition:.3s;
+  color:var(--green); font-size:1.1rem; opacity:.45;
+  transition:.4s cubic-bezier(.2,.8,.2,1);
 }
-.link:hover .arrow{opacity:1; transform:translate(-4px,-4px)}
+.link:hover .arrow{opacity:1; transform:translate(-5px,-5px)}
 
 /* ================= المهارات ================= */
-.skills{display:flex; flex-direction:column; gap:18px}
+.skills{display:flex; flex-direction:column; gap:20px}
 
 .skill-top{
-  display:flex; justify-content:space-between;
-  font-size:.86rem; margin-bottom:8px;
-  font-family:"Courier New",monospace;
+  display:flex; justify-content:space-between; align-items:baseline;
+  font-size:.86rem; margin-bottom:9px;
+  font-family:"JetBrains Mono",monospace;
 }
-.skill-top span:first-child{color:#d6fff0}
-.skill-top span:last-child{color:var(--green)}
+.skill-top span:first-child{color:#d6fff0; letter-spacing:.4px}
+.skill-top span:last-child{
+  color:var(--green); font-weight:600;
+  text-shadow:0 0 12px rgba(0,255,156,.55);
+}
 
 .bar{
-  height:8px; border-radius:99px;
-  background:rgba(0,255,156,.09);
-  border:1px solid rgba(0,255,156,.14);
-  overflow:hidden;
+  height:7px; border-radius:99px;
+  background:rgba(0,255,156,.07);
+  border:1px solid rgba(0,255,156,.12);
+  overflow:hidden; position:relative;
 }
 .bar i{
   display:block; height:100%; width:0;
   border-radius:99px;
-  background:linear-gradient(90deg,var(--green),var(--cyan));
-  box-shadow:0 0 14px rgba(0,255,156,.7);
-  transition:width 1.5s cubic-bezier(.2,.8,.2,1);
+  background:linear-gradient(90deg,var(--green),var(--cyan) 70%,var(--gold));
+  box-shadow:0 0 16px rgba(0,255,156,.7);
+  transition:width 1.6s cubic-bezier(.2,.8,.2,1);
   transition-delay:var(--d,0s);
+  position:relative;
 }
+.bar i::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);
+  background-size:200% 100%;
+  animation:shine 2.4s linear infinite;
+}
+@keyframes shine{to{background-position:-200% 0}}
 .reveal.in .bar i{width:var(--v)}
 
 /* ================= الفوتر ================= */
 footer{
-  text-align:center; font-size:.8rem; color:#4e7d6c;
-  font-family:"Courier New",monospace;
-  padding-top:10px; letter-spacing:.5px;
+  text-align:center; font-size:.79rem; color:#4e7d6c;
+  font-family:"JetBrains Mono",monospace;
+  padding-top:14px; letter-spacing:.6px;
+  display:flex; flex-direction:column; gap:7px;
 }
-footer .heart{color:var(--pink)}
+footer .heart{
+  color:var(--pink);
+  display:inline-block;
+  animation:beat 1.8s ease-in-out infinite;
+  filter:drop-shadow(0 0 8px rgba(255,46,136,.7));
+}
+footer .sep{color:rgba(0,255,156,.25); margin:0 8px}
+
+/* ================= زر العودة للأعلى ================= */
+#toTop{
+  position:fixed; bottom:26px; left:26px; z-index:700;
+  width:46px; height:46px; border-radius:14px;
+  display:grid; place-items:center;
+  border:1px solid rgba(0,255,156,.25);
+  background:rgba(6,18,16,.75);
+  backdrop-filter:blur(10px);
+  color:var(--green); cursor:pointer;
+  opacity:0; transform:translateY(18px); pointer-events:none;
+  transition:.45s cubic-bezier(.2,.8,.2,1);
+}
+#toTop.show{opacity:1; transform:none; pointer-events:auto}
+#toTop:hover{
+  background:var(--green); color:#04070a;
+  box-shadow:0 0 26px rgba(0,255,156,.6);
+  transform:translateY(-4px);
+}
 
 /* ================= الجوال ================= */
-@media (max-width:520px){
-  .wrap{padding:34px 14px 50px}
-  .panel{padding:16px}
-  .term-body{font-size:.82rem; padding:13px}
-  .avatar-wrap{width:126px;height:126px}
-  .avatar{width:96px;height:96px;font-size:1.9rem}
-  .link{padding:12px}
-  .ico{width:36px;height:36px;flex-basis:36px}
+@media (max-width:560px){
+  .wrap{padding:40px 14px 60px; gap:26px}
+  .panel{padding:18px; border-radius:16px}
+  .term-body{font-size:.8rem; padding:14px; min-height:140px}
+  .avatar-wrap{width:140px;height:140px}
+  .avatar{width:106px;height:106px;font-size:2.1rem}
+  .link{padding:13px}
+  .ico{width:40px;height:40px;flex-basis:40px}
+  #toTop{left:16px; bottom:16px; width:42px; height:42px}
+}
+
+/* ================= تقليل الحركة ================= */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.001ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.15s !important;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<!-- الخلفيات -->
-<canvas id="matrix"></canvas>
-<div class="overlay" id="overlay"></div>
-<div class="scanlines"></div>
-<div class="vignette"></div>
+<!-- ============ شاشة التحميل ============ -->
+<div id="loader">
+  <div class="loader-inner">
+    <div class="loader-mark">HUSSEIN.DEV</div>
+    <div class="loader-bar"><i id="loaderBar"></i></div>
+    <div class="loader-pct" id="loaderPct">0%</div>
+  </div>
+</div>
+
+<!-- ============ الخلفيات ============ -->
+<div class="bg-layer" id="aurora">
+  <span class="blob b1"></span>
+  <span class="blob b2"></span>
+  <span class="blob b3"></span>
+</div>
+<canvas class="bg-layer" id="matrix"></canvas>
+<div class="bg-layer" id="grid"></div>
+<div class="bg-layer" id="noise"></div>
+<div class="bg-layer" id="spotlight"></div>
+<div class="bg-layer" id="scanlines"></div>
+<div class="bg-layer" id="vignette"></div>
+
+<!-- ============ المؤشر ============ -->
+<div class="cursor-ring" id="cRing"></div>
+<div class="cursor-dot"  id="cDot"></div>
+
+<!-- ============ شريط التقدم ============ -->
+<div id="progress"></div>
 
 <main class="wrap">
 
@@ -353,11 +692,14 @@ footer .heart{color:var(--pink)}
     </div>
 
     <div class="avatar-wrap">
+      <div class="avatar-ring slow"></div>
       <div class="avatar-ring"></div>
       <div class="avatar">HR</div>
     </div>
 
     <h1 class="glitch" data-text="Hussein Raad">Hussein Raad</h1>
+
+    <div class="status"><i></i> ONLINE — متاح للعمل</div>
 
     <p class="role">Ｈｕｓｓｅｉｎ．Ｄｅｖ — <span>مبرمج ومطوّر ويب</span></p>
 
@@ -367,11 +709,17 @@ footer .heart{color:var(--pink)}
       <span class="badge">UI / UX</span>
       <span class="badge">Bot Developer</span>
     </div>
+
+    <div class="scroll-hint"><i></i></div>
   </header>
 
   <!-- ============ الروابط ============ -->
-  <section class="panel reveal">
-    <h2 class="sec-title"><span class="prompt">&gt;</span> الروابط / Contact</h2>
+  <section class="panel reveal tilt">
+    <h2 class="sec-title">
+      <span class="num">01</span>
+      <span class="prompt">&gt;</span> الروابط
+      <span class="ar">Contact</span>
+    </h2>
 
     <div class="links">
 
@@ -424,33 +772,37 @@ footer .heart{color:var(--pink)}
   </section>
 
   <!-- ============ المهارات ============ -->
-  <section class="panel reveal">
-    <h2 class="sec-title"><span class="prompt">&gt;</span> المهارات / Skills</h2>
+  <section class="panel reveal tilt">
+    <h2 class="sec-title">
+      <span class="num">02</span>
+      <span class="prompt">&gt;</span> المهارات
+      <span class="ar">Skills</span>
+    </h2>
 
     <div class="skills">
 
       <div class="skill">
-        <div class="skill-top"><span>HTML / CSS</span><span>95%</span></div>
+        <div class="skill-top"><span>HTML / CSS</span><span data-count="95">0%</span></div>
         <div class="bar"><i style="--v:95%; --d:.15s"></i></div>
       </div>
 
       <div class="skill">
-        <div class="skill-top"><span>JavaScript</span><span>90%</span></div>
+        <div class="skill-top"><span>JavaScript</span><span data-count="90">0%</span></div>
         <div class="bar"><i style="--v:90%; --d:.30s"></i></div>
       </div>
 
       <div class="skill">
-        <div class="skill-top"><span>Python</span><span>85%</span></div>
+        <div class="skill-top"><span>Python</span><span data-count="85">0%</span></div>
         <div class="bar"><i style="--v:85%; --d:.45s"></i></div>
       </div>
 
       <div class="skill">
-        <div class="skill-top"><span>PHP / MySQL</span><span>80%</span></div>
+        <div class="skill-top"><span>PHP / MySQL</span><span data-count="80">0%</span></div>
         <div class="bar"><i style="--v:80%; --d:.60s"></i></div>
       </div>
 
       <div class="skill">
-        <div class="skill-top"><span>Node.js / APIs</span><span>75%</span></div>
+        <div class="skill-top"><span>Node.js / APIs</span><span data-count="75">0%</span></div>
         <div class="bar"><i style="--v:75%; --d:.75s"></i></div>
       </div>
 
@@ -459,76 +811,115 @@ footer .heart{color:var(--pink)}
 
   <!-- ============ الفوتر ============ -->
   <footer class="reveal">
-    <p>© <span id="year"></span> Hussein Raad — All rights reserved</p>
+    <p>© <span id="year"></span> Hussein Raad <span class="sep">|</span> All rights reserved</p>
     <p>Built with <span class="heart">♥</span> &amp; lots of coffee ☕</p>
   </footer>
 
 </main>
 
+<!-- ============ زر العودة ============ -->
+<button id="toTop" aria-label="العودة للأعلى">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2"
+       stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 19V5M5 12l7-7 7 7"/>
+  </svg>
+</button>
+
 <script>
 /* ============================================================
-   1) خلفية المطر الرقمي (Matrix Rain)
+   0) شاشة التحميل
+   ============================================================ */
+(function () {
+  const bar = document.getElementById('loaderBar');
+  const pct = document.getElementById('loaderPct');
+  let p = 0;
+
+  const timer = setInterval(() => {
+    p += Math.random() * 14 + 4;
+    if (p >= 100) { p = 100; clearInterval(timer); finish(); }
+    bar.style.width = p + '%';
+    pct.textContent = Math.floor(p) + '%';
+  }, 90);
+
+  function finish() {
+    setTimeout(() => {
+      document.body.classList.add('loaded');
+      startTyping();
+    }, 320);
+  }
+})();
+
+/* ============================================================
+   1) خلفية المطر الرقمي
    ============================================================ */
 (function () {
   const canvas = document.getElementById('matrix');
   const ctx = canvas.getContext('2d');
   const chars = 'アカサタナハマヤラワ0123456789ABCDEF</>{}[]$#@%&*+=';
-  const FONT_SIZE = 15;
-  let w, h, cols, drops;
+  const FS = 15;
+  let w, h, cols, drops, raf;
 
   function resize() {
     w = canvas.width  = window.innerWidth;
     h = canvas.height = window.innerHeight;
-    cols = Math.ceil(w / FONT_SIZE);
-    drops = Array.from({ length: cols }, () => Math.random() * -80);
+    cols = Math.ceil(w / FS);
+    drops = Array.from({ length: cols }, () => Math.random() * -90);
   }
   window.addEventListener('resize', resize);
   resize();
 
-  function draw() {
-    // طبقة شفافة تُنشئ ذيل التلاشي
-    ctx.fillStyle = 'rgba(4, 7, 10, 0.09)';
-    ctx.fillRect(0, 0, w, h);
+  let last = 0;
+  function draw(now) {
+    raf = requestAnimationFrame(draw);
+    if (now - last < 55) return;
+    last = now;
 
-    ctx.font = FONT_SIZE + 'px monospace';
+    ctx.fillStyle = 'rgba(3, 6, 10, 0.10)';
+    ctx.fillRect(0, 0, w, h);
+    ctx.font = FS + 'px "JetBrains Mono", monospace';
 
     for (let i = 0; i < cols; i++) {
-      const ch = chars[Math.floor(Math.random() * chars.length)];
-      const x  = i * FONT_SIZE;
-      const y  = drops[i] * FONT_SIZE;
+      const ch = chars[(Math.random() * chars.length) | 0];
+      const x = i * FS;
+      const y = drops[i] * FS;
 
-      // بعض الحروف تلمع بالأبيض
-      ctx.fillStyle = Math.random() > 0.975 ? '#e6fff4' : '#00ff9c';
+      const r = Math.random();
+      ctx.fillStyle = r > 0.985 ? '#eafff5' : (r > 0.96 ? '#ffd76a' : '#00ff9c');
       ctx.fillText(ch, x, y);
 
       if (y > h && Math.random() > 0.975) drops[i] = 0;
       drops[i]++;
     }
   }
-  setInterval(draw, 55);
+  raf = requestAnimationFrame(draw);
 })();
 
 /* ============================================================
-   2) تأثير الكتابة في الطرفية (Typewriter)
+   2) الكتابة في الطرفية
    ============================================================ */
+let startTyping = function () {}; // سيُعاد تعريفه
+
 (function () {
   const body = document.getElementById('terminal-body');
 
   const lines = [
-    { t: '$ whoami',                     c: 'cmd' },
-    { t: 'Hussein Raad',                 c: 'out' },
-    { t: '$ echo $STATUS',               c: 'cmd' },
-    { t: 'ONLINE ● Available for work',  c: 'out' }
+    { t: '$ whoami',                       c: 'cmd' },
+    { t: 'Hussein Raad',                   c: 'out' },
+    { t: '$ cat /status',                  c: 'cmd' },
+    { t: 'ONLINE ● Available for work',    c: 'out' },
+    { t: '$ echo "Let\'s build something"', c: 'cmd' },
+    { t: '> ready_',                       c: 'ok'  }
   ];
 
-  function startTyping() {
+  startTyping = function () {
     let index = 0;
 
-    function typeNextLine() {
+    (function next() {
       if (index >= lines.length) {
-        const cursor = document.createElement('span');
-        cursor.className = 'cursor';
-        body.appendChild(cursor);
+        const c = document.createElement('span');
+        c.className = 'cursor';
+        body.appendChild(c);
         return;
       }
 
@@ -538,59 +929,146 @@ footer .heart{color:var(--pink)}
       body.appendChild(line);
 
       let k = 0;
+      const speed = 38 + Math.random() * 26;
+
       const timer = setInterval(() => {
         line.textContent = t.slice(0, ++k);
         if (k >= t.length) {
           clearInterval(timer);
           index++;
-          setTimeout(typeNextLine, 320);
+          setTimeout(next, 300);
         }
-      }, 42);
-    }
-
-    typeNextLine();
-  }
-
-  // ابدأ بعد تحميل الصفحة بقليل
-  window.addEventListener('load', () => setTimeout(startTyping, 400));
+      }, speed);
+    })();
+  };
 })();
 
 /* ============================================================
-   3) تفعيل الأنيميشن عند التمرير (Scroll Reveal)
+   3) Scroll Reveal + عدّاد المهارات
    ============================================================ */
 (function () {
   const items = document.querySelectorAll('.reveal');
 
+  function animateCount(el) {
+    const target = +el.dataset.count;
+    const dur = 1500;
+    const t0 = performance.now();
+
+    (function step(now) {
+      const p = Math.min((now - t0) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased) + '%';
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+
   if (!('IntersectionObserver' in window)) {
     items.forEach(el => el.classList.add('in'));
+    document.querySelectorAll('[data-count]').forEach(animateCount);
     return;
   }
 
   const io = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('in');
-        io.unobserve(entry.target);
-      }
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('in');
+      entry.target.querySelectorAll('[data-count]').forEach(animateCount);
+      io.unobserve(entry.target);
     });
-  }, { threshold: 0.12 });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
 
   items.forEach(el => io.observe(el));
 })();
 
 /* ============================================================
-   4) توهّج يتبع مؤشر الفأرة
+   4) بقعة الضوء + المؤشر المخصص + المغناطيسية
    ============================================================ */
 (function () {
+  const dot  = document.getElementById('cDot');
+  const ring = document.getElementById('cRing');
   const root = document.documentElement;
-  window.addEventListener('mousemove', (e) => {
-    root.style.setProperty('--mx', e.clientX + 'px');
-    root.style.setProperty('--my', e.clientY + 'px');
-  }, { passive: true });
+  const fine = window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+
+  let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+  let rx = mx, ry = my;
+
+  if (fine) {
+    window.addEventListener('mousemove', (e) => {
+      mx = e.clientX; my = e.clientY;
+      root.style.setProperty('--mx', mx + 'px');
+      root.style.setProperty('--my', my + 'px');
+      dot.style.transform = `translate(${mx}px, ${my}px) translate(-50%,-50%)`;
+    }, { passive: true });
+
+    (function loop() {
+      rx += (mx - rx) * 0.16;
+      ry += (my - ry) * 0.16;
+      ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%,-50%)`;
+      requestAnimationFrame(loop);
+    })();
+
+    // تكبير المؤشر على العناصر التفاعلية
+    document.querySelectorAll('a, button, .badge').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+  }
+
+  // بقعة الضوء داخل اللوحات
+  document.querySelectorAll('.panel').forEach(panel => {
+    panel.addEventListener('mousemove', (e) => {
+      const r = panel.getBoundingClientRect();
+      panel.style.setProperty('--px', (e.clientX - r.left) + 'px');
+      panel.style.setProperty('--py', (e.clientY - r.top)  + 'px');
+    }, { passive: true });
+  });
+
+  // تأثير مغناطيسي خفيف على الروابط
+  if (fine) {
+    document.querySelectorAll('.link').forEach(link => {
+      link.addEventListener('mousemove', (e) => {
+        const r = link.getBoundingClientRect();
+        const x = (e.clientX - r.left - r.width  / 2) / r.width;
+        const y = (e.clientY - r.top  - r.height / 2) / r.height;
+        link.style.transform =
+          `translateY(-3px) translate(${x * 7}px, ${y * 5}px)`;
+      });
+      link.addEventListener('mouseleave', () => {
+        link.style.transform = '';
+      });
+    });
+  }
 })();
 
 /* ============================================================
-   5) سنة الحقوق تلقائيًا
+   5) شريط التقدم + زر العودة للأعلى
+   ============================================================ */
+(function () {
+  const bar = document.getElementById('progress');
+  const top = document.getElementById('toTop');
+  let ticking = false;
+
+  function update() {
+    const st = window.scrollY;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.width = (max > 0 ? (st / max) * 100 : 0) + '%';
+    top.classList.toggle('show', st > 420);
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', () => {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+
+  top.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  update();
+})();
+
+/* ============================================================
+   6) سنة الحقوق
    ============================================================ */
 document.getElementById('year').textContent = new Date().getFullYear();
 </script>
